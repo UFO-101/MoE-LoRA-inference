@@ -11,5 +11,6 @@
     "python.analysis.typeCheckingMode": "standard",
     "editor.rulers": [
       88
-    ]
+    ],
+    "cursorpyright.analysis.typeCheckingMode": "standard"
   }

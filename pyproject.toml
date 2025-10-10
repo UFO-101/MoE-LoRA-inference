@@ -6,7 +6,17 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "ipykernel>=6.30.1",
+    "transformers>=4.40.0",
+    "peft>=0.10.0",
+    "datasets>=2.18.0",
+    "torch>=2.2.0",
+    "accelerate>=0.27.0",
+    "bitsandbytes>=0.43.0",
+    "tensorboard>=2.16.0",
 ]
+
+[project.scripts]
+train-lora = "moe_lora_inference.train_lora:main"
 
 [build-system]
 requires = ["uv_build>=0.8.23,<0.9.0"]

@@ -1,34 +1,23 @@
-#%%
-#!/usr/bin/env python3
-"""
-Basic vLLM setup with Qwen2.5-0.5B-Instruct
-A state-of-the-art <1B parameter model with strong instruction-following capabilities.
-"""
-
+# %%
 from vllm import LLM, SamplingParams
 
-llm = LLM(model="Qwen/Qwen2.5-0.5B-Instruct")
-
-sampling_params = SamplingParams(
-    temperature=0.7,
-    top_p=0.9,
-    max_tokens=256,
-)
-
-prompts = [
-    "What is the capital of France?",
-    "Write a haiku about artificial intelligence.",
-    "Explain what vLLM is in one sentence.",
-]
-
-# Generate responses
-print("Running vLLM with Qwen2.5-0.5B-Instruct...\n")
-outputs = llm.generate(prompts, sampling_params)
-
-# Display results
-for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"Prompt: {prompt}")
-    print(f"Response: {generated_text}")
-    print("-" * 80)
+llm = None
+try:
+    llm = LLM(
+        model="ibm-research/PowerMoE-3b",
+        gpu_memory_utilization=0.5,  # don’t grab 90% while iterating
+        max_model_len=2048,  # smaller KV cache while debugging
+        enforce_eager=True,  # skip compile until stable
+    )
+    params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=256)
+    prompts = [
+        "What is the capital of France?",
+        "Write a haiku about artificial intelligence.",
+        "Explain what vLLM is in one sentence.",
+    ]
+    outs = llm.generate(prompts, params)
+    for o in outs:
+        print(o.prompt, "\n", o.outputs[0].text, "\n", "-" * 80)
+finally:
+    if llm is not None:
+        llm.shutdown()  # <- ensures the child process exits and frees VRAM

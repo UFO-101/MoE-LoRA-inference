@@ -20,4 +20,4 @@ try:
         print(o.prompt, "\n", o.outputs[0].text, "\n", "-" * 80)
 finally:
     if llm is not None:
-        llm.shutdown()  # <- ensures the child process exits and frees VRAM
+        del llm  # cleanup - vLLM will free resources on garbage collection

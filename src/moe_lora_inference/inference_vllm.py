@@ -6,16 +6,14 @@ vLLM inference with LoRA adapter.
 This script uses vLLM for high-performance inference with a trained LoRA adapter.
 """
 
+# Import after setting environment variables
 import os
 
-# Force vLLM to use CUDA platform (workaround for NVML driver mismatch)
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
-
-# Import after setting environment variables
 from vllm import LLM, SamplingParams
+from vllm.lora.request import LoRARequest
 
-# %%
+os.environ["VLLM_LOGGING_LEVEL"] = "DEBUG"
+
 llm = None
 try:
     llm = LLM(
@@ -27,7 +25,6 @@ try:
         tensor_parallel_size=1,  # Explicitly set single GPU
     )
 
-    # %%
     params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=256)
 
     # Format prompts to match training format (instruction/response style)
@@ -37,19 +34,20 @@ try:
         "### Instruction:\nWhat are three tips for staying healthy?\n\n### Response:\n",
     ]
 
-    # %%
     # Generate with LoRA adapter
     lora_path = "./lora_adapters/powermoe-3b/checkpoint-1500"
+    lora_request = LoRARequest("powermoe-lora", 1, lora_path)
     outs = llm.generate(
         prompts,
         params,
-        lora_request={"lora_name": "powermoe-lora", "lora_path": lora_path},
+        lora_request=lora_request,
     )
 
-    # %%
     for o in outs:
         print(o.prompt, "\n", o.outputs[0].text, "\n", "-" * 80)
 
 finally:
     if llm is not None:
-        llm.shutdown()  # ensures the child process exits and frees VRAM
+        del llm  # cleanup - vLLM will free resources on garbage collection
+
+# %%
